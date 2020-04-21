@@ -13,13 +13,17 @@ import tushare as ts
 import pandas as pd
 import platform
 import os
+import datetime
 
 DAYNUM = 22 #过去22天的交易数据
-EXPECT = 12 #其中有13次涨跌幅超过5%
+EXPECT = 13 #其中有13次涨跌幅超过5%
 NOT_GOOD = 16 #涨跌幅超过5%的有16次，认为这个股票不适合
 NO_DIFF = 3 #涨的次数和跌的次数差的绝对值
 
 FLUC_INFO = []
+
+#过去n年的报表
+NYEAR = 3
 
 '''ts.get_stock_basics()
 #获取2015年第一季度的业绩报表数据
@@ -38,21 +42,33 @@ ts.get_cashflow_data(2015,1)
 
 '''ts.get_report_data(年份，季度）, 可以获取每一年的季度的业绩。
    如果想要获取上市公司的年报，只要把季度参数改为4即可'''
-def load_report_datas():
-	try:
-		report = ts.get_report_data(2018, 4)
-	except Exception as e:
-		print(e)
-		report = pd.read_csv("report.csv")
+def load_report_datas(year, repfile):
+	if (os.path.exists(repfile)):
+		report = pd.read_csv(repfile)
+	else:
+		try:
+			report = ts.get_report_data(year, 4)
+		except Exception as e:
+			print(e)
 
-	if (os.path.exists("report.csv")):
-		os.remove("report.csv")
-
-	report.fillna(0)
-	report.to_csv("report.csv")
-	report = pd.read_csv("report.csv")
+	if (not os.path.exists(repfile)):
+		report.fillna(0)
+		report.to_csv(repfile)
+		report = pd.read_csv(repfile)
 
 	return report
+
+def get_n_year_report():
+	year = datetime.datetime.now().year
+	repny = {}
+	i = 1
+	while i <= NYEAR:
+		year = year - 1
+		repfile = 'report_' + str(year) + '.csv'
+		rep = load_report_datas(year, repfile)
+		repny[year] = rep
+		i = i + 1
+	return repny
 
 def load_all_stock_basics():
 	basic = pd.read_csv("basic.csv")
@@ -82,6 +98,17 @@ def load_today_all_stocks():
 		#print(i)
 	return allcode
 
+#---------------------------------------
+#For debug use
+'''
+def calculate_stock_fluctuation_HZ1(stock):
+	stock_item = {}
+	stock_item['stock'] = stock.zfill(6)
+	stock_item['score'] = 0
+	return stock_item
+'''
+#---------------------------------------
+
 def calculate_stock_fluctuation_HZ(stock):
 	data = ts.get_k_data(stock, ktype='D', autype='qfq')
 	try:
@@ -105,12 +132,13 @@ def calculate_stock_fluctuation_HZ(stock):
 			if data.close[i+j] > data.low[i] and round((data.close[i+j] - data.low[i])/(data.close[i+j]),2) > 0.05:
 				fluc_dw = fluc_dw + 1
 		stock_item['aT'] = fluc_up + fluc_dw
-		stock_item['adiff'] = abs(fluc_up - fluc_dw)
-		stock_item['aup'] = fluc_up
-		stock_item['adw'] = fluc_dw
-		stock_item['price'] = data.close[i]
-		if (stock_item['aT'] < EXPECT or stock_item['aT'] > NOT_GOOD or stock_item['adiff'] > NO_DIFF):
+		stock_item['d'] = fluc_up - fluc_dw
+		#stock_item['aup'] = fluc_up
+		#stock_item['adw'] = fluc_dw
+		stock_item['p'] = data.close[i]
+		if (stock_item['aT'] < EXPECT or stock_item['aT'] > NOT_GOOD or stock_item['d'] > NO_DIFF):
 			return 0
+		stock_item['score'] = 0
 
 	return stock_item
 
@@ -135,13 +163,30 @@ def get_specific_stock_basic(scode, item, basics):
 	item['pb'] = pb
 	item['zIdustry'] = str(industry)
 
-def get_specific_stock_extend(scode, item, report):
-	tre = report[report['code'] == int(scode)]
-	if tre.empty:
-		item['roe'] = -99
-	else:
-		tmp = tre.to_dict(orient='list')
-		item['roe'] = tmp['roe'][0]
+def get_specific_stock_extend(scode, item, reports):
+	year = datetime.datetime.now().year - 1
+	for i in range(0, NYEAR):
+		report = reports[year]
+		tr = 'roe' + str(year-2000)
+
+		year = year - 1
+		tre = report[report['code'] == int(scode)]
+		if tre.empty:
+			item['score'] = item['score'] + 1 #No roe, +1
+			item[tr] = -99
+		else:
+			tmp = tre.to_dict(orient='list')
+			item[tr] = tmp['roe'][0]
+			if tmp['roe'][0] > 50:
+				item['score'] = item['score'] + 2
+			elif tmp['roe'][0] > 20:
+				item['score'] = item['score'] + 5
+			elif tmp['roe'][0] > 10:
+				item['score'] = item['score'] + 3
+			elif tmp['roe'][0] > 0:
+				item['score'] = item['score'] + 1
+			else:
+				item['score'] = item['score'] + 0
 
 if __name__ == '__main__':
 	if platform.system == 'Windows':
@@ -153,11 +198,11 @@ if __name__ == '__main__':
 
 	all_code = load_today_all_stocks()
 	stock_basics = load_all_stock_basics()
-	report_data = load_report_datas()
+	report_data = get_n_year_report()
 
 	i = 0
 	for stock in all_code:
-		if (i>100):
+		if (i>30):
 			break;
 		item = calculate_stock_fluctuation_HZ(stock)
 		if item != 0:
@@ -169,7 +214,7 @@ if __name__ == '__main__':
 
 	df = pd.DataFrame(FLUC_INFO)
 	df.set_index(['stock'], inplace=True)
-	df.sort_values(by=['roe'], axis=0, ascending=False, inplace=True)
+	df.sort_values(by=['score'], axis=0, ascending=False, inplace=True)
 	print(df)
 	df.to_csv("getItFun.csv")
 	print("Let's have fun!")
