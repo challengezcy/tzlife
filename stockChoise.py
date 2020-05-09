@@ -12,8 +12,15 @@ __author__ = "challengezcy@163.com"
 import tushare as ts
 import pandas as pd
 import platform
+from sys import argv
 import os
 import datetime
+
+#数据D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟
+
+#python stockChoise.py W
+_, period = argv
+
 
 DAYNUM = 22 #过去22天的交易数据
 EXPECT = 13 #其中有13次涨跌幅超过5%
@@ -23,7 +30,7 @@ NO_DIFF = 3 #涨的次数和跌的次数差的绝对值
 FLUC_INFO = []
 
 #过去n年的报表
-NYEAR = 3
+NYEAR = 4
 
 '''ts.get_stock_basics()
 #获取2015年第一季度的业绩报表数据
@@ -110,7 +117,17 @@ def calculate_stock_fluctuation_HZ1(stock):
 #---------------------------------------
 
 def calculate_stock_fluctuation_HZ(stock):
-	data = ts.get_k_data(stock, ktype='D', autype='qfq')
+	global period
+	if str(period) == 'D':
+		wave = 0.06
+	elif str(period) == 'W':
+		wave = 0.10
+	else:
+		print('The parameter "Period" is not right')
+		period = 'D'
+		wave = 0.06
+
+	data = ts.get_k_data(stock, ktype=str(period), autype='qfq')
 	try:
 		data = data.sort_values(by='date', ascending=False)
 		data = data.set_index('date')
@@ -127,9 +144,9 @@ def calculate_stock_fluctuation_HZ(stock):
 		fluc_dw = 0
 		fluc = 0
 		for i in range(DAYNUM, -1, -1):
-			if data.close[i+j] < data.high[i] and round((data.high[i] - data.close[i+j])/(data.close[i+j]),2) > 0.05:
+			if data.close[i+j] < data.high[i] and round((data.high[i] - data.close[i+j])/(data.close[i+j]),2) > wave:
 				fluc_up = fluc_up + 1
-			if data.close[i+j] > data.low[i] and round((data.close[i+j] - data.low[i])/(data.close[i+j]),2) > 0.05:
+			if data.close[i+j] > data.low[i] and round((data.close[i+j] - data.low[i])/(data.close[i+j]),2) > wave:
 				fluc_dw = fluc_dw + 1
 		stock_item['aT'] = fluc_up + fluc_dw
 		stock_item['d'] = fluc_up - fluc_dw
