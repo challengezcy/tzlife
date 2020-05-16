@@ -20,10 +20,10 @@ import datetime
 _, period = argv
 
 
-DAYNUM = 22  # 过去22天的交易数据
-EXPECT = 13  # 其中有13次涨跌幅超过5%
-NOT_GOOD = 16  # 涨跌幅超过5%的有16次，认为这个股票不适合
-NO_DIFF = 3  # 涨的次数和跌的次数差的绝对值
+DAYNUM = 24  # 过去22天的交易数据
+EXPECT = 12  # 其中有13次涨跌幅超过5%
+NOT_GOOD = 24  # 涨跌幅超过5%的有16次，认为这个股票不适合
+NO_DIFF = 4  # 涨的次数和跌的次数差的绝对值
 
 FLUC_INFO = []
 
