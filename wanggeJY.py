@@ -110,7 +110,7 @@ def generate_base_grid():
             ws.cell(row=i, column=1).value = ((float)(ref_price)) * ((1000 - (int)
                                                                       (10 * down_range + (15 * (i - UP_BASE_PRICE_GRID_COUNT)))) / 1000)
             ws.cell(row=i, column=2).value = ws.cell(row=i, column=1).value * \
-                ((10000 + (int)(up_range * 100 + (i - UP_BASE_PRICE_GRID_COUNT) * 40)) / 10000)
+                ((10000 + (int)(up_range * 100 + 2 * (i - UP_BASE_PRICE_GRID_COUNT) * 50)) / 10000)
             ws.cell(
                 row=i,
                 column=1).value = round(
