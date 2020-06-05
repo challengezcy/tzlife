@@ -21,9 +21,9 @@ _, period = argv
 
 
 DAYNUM = 24  # 过去22天的交易数据
-EXPECT = 12  # 其中有13次涨跌幅超过5%
-NOT_GOOD = 24  # 涨跌幅超过5%的有16次，认为这个股票不适合
-NO_DIFF = 4  # 涨的次数和跌的次数差的绝对值
+EXPECT = 13  # 其中有13次涨跌幅超过6%
+NOT_GOOD = 24  # 涨跌幅超过6%的有24次，认为这个股票不适合
+NO_DIFF = 3  # 涨的次数和跌的次数差的绝对值
 
 FLUC_INFO = []
 
@@ -217,7 +217,7 @@ def get_specific_stock_extend(scode, item, reports):
 
 
 if __name__ == '__main__':
-    if platform.system == 'Windows':
+    if platform.system() == 'Windows':
         cmd = 'chcp 936'
         os.system(cmd)
 
@@ -240,7 +240,7 @@ if __name__ == '__main__':
 
     df = pd.DataFrame(FLUC_INFO)
     df.set_index(['stock'], inplace=True)
-    df.sort_values(by=['score'], axis=0, ascending=False, inplace=True)
+    df.sort_values(by=['aT'], axis=0, ascending=False, inplace=True)
     print(df)
     df.to_csv("getItFun.csv")
     print("Let's have fun!")
