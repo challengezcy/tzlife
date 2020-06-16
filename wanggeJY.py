@@ -75,16 +75,16 @@ def generate_base_grid():
                 ws.cell(row=i, column=1).value = ((float)(price)) * \
                     ((100 + (int)(up_range)) / 100)
                 ws.cell(row=i, column=2).value = ws.cell(
-                    row=i, column=1).value * ((100 + (int)(up_range)) / 100)
+                    row=i, column=1).value * ((100 + (int)(up_range + 4)) / 100)
             elif i == 2:
                 ws.cell(row=i, column=1).value = ((float)(price))
                 ws.cell(row=i, column=2).value = ws.cell(
-                    row=i, column=1).value * ((100 + (int)(up_range)) / 100)
+                    row=i, column=1).value * ((100 + (int)(up_range + 3)) / 100)
             else:
                 ref_price = ws.cell(row=i - 1, column=1).value
                 ws.cell(row=i, column=1).value = (
                     (float)(ref_price)) * ((100 - (int)(down_range)) / 100)
-                ws.cell(row=i, column=2).value = (float)(ref_price)
+                ws.cell(row=i, column=2).value = (float)(ref_price)* ((100 + 2) / 100)
             ws.cell(
                 row=i,
                 column=1).value = round(
