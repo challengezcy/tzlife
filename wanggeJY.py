@@ -18,18 +18,19 @@ import pandas as pd
 import os
 
 #price: 第二档买入价
+#UP_range: 建议设置6%,每档之间的初始间隔
 #Trade_mount: 此次网格交易总共投入的实际资金
-# load: 相当于加多少杠杆交易（0～100）
+#loan: 相当于加多少杠杆交易（0～100）
 
-# python wanggeJY.py 18.79 200000 10
-_, price, Trade_mount, loan = argv
+# python wanggeJY.py 18.79 6 200000 10
+_, price, UP_range, Trade_mount, loan = argv
 
 # 默认10个网格
 GRID_COUNT = 10
 UP_BASE_PRICE_GRID_COUNT = 4
 
 # 默认涨6%卖出
-UP_range = 6
+#UP_range = 6
 up_range = (int)(UP_range)
 
 # 默认跌6%买入，参考20200406修正说明
@@ -56,10 +57,11 @@ if (os.path.exists("op_plan.xlsx")):
     os.remove("op_plan.xlsx")
 
 # 根据当日的收盘价，计算下一个交易日的涨／跌停价
-#close = round((float)(Close), 2)
-#close_up = close + round(close*10/100, 2)
-#close_down = close - round(close*10/100, 2)
-#print("close up %f, close down %f" % (close_up, close_down))
+Close = price
+close = round((float)(Close), 2)
+close_up = round(close + round(close*10/100, 2), 2)
+close_down = round(close - round(close*10/100, 2), 2)
+print("close up %.2f, close down %.2f" % (close_up, close_down))
 
 # 建立excel表格
 wb = Workbook()

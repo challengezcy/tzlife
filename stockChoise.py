@@ -126,7 +126,7 @@ def calculate_stock_fluctuation_HZ(stock):
     if str(period) == 'D':
         wave = 0.06
     elif str(period) == 'W':
-        wave = 0.10
+        wave = 0.13
     else:
         print('The parameter "Period" is not right')
         period = 'D'
