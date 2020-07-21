@@ -62,6 +62,7 @@ close = round((float)(Close), 2)
 close_up = round(close + round(close*10/100, 2), 2)
 close_down = round(close - round(close*10/100, 2), 2)
 print("close up %.2f, close down %.2f" % (close_up, close_down))
+print("")
 
 # 建立excel表格
 wb = Workbook()
@@ -261,4 +262,7 @@ if __name__ == '__main__':
     #	money_efficient()
     stock_op_plan()
 
-    print("Let's have fun!")
+    print("\n")
+    print("教训:")
+    print("   --见好就收 圣龙股份 2020/06")
+    print("   --不谈恋爱 共达电声 2020/07") 
